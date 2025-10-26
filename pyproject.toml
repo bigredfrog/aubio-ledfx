@@ -60,6 +60,18 @@ before-all = [
     "yum install -y libsndfile-devel libsamplerate-devel libsamplerate fftw-devel",
 ]
 
+[tool.cibuildwheel.windows]
+# Windows: Use vcpkg to install dependencies before building
+# GitHub Actions runners have vcpkg pre-installed at VCPKG_INSTALLATION_ROOT
+before-all = [
+    "if not exist vcpkg_installed %VCPKG_INSTALLATION_ROOT%\\vcpkg.exe install --triplet=x64-windows",
+]
+
+[tool.cibuildwheel.windows.environment]
+# Set paths so Meson can find vcpkg packages via CMake and pkg-config
+CMAKE_PREFIX_PATH = "{project}\\vcpkg_installed\\x64-windows"
+PKG_CONFIG_PATH = "{project}\\vcpkg_installed\\x64-windows\\lib\\pkgconfig;{project}\\vcpkg_installed\\x64-windows\\share\\pkgconfig"
+
 [tool.cibuildwheel.macos]
 # macOS deployment target for compatibility
 environment = {MACOSX_DEPLOYMENT_TARGET="11.0"}

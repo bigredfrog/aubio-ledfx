@@ -7,6 +7,12 @@
     "pkgconf",
     "libsndfile",
     "libsamplerate",
-    "fftw3"
+    "fftw3",
+    "rubberband",
+    {
+      "name": "ffmpeg",
+      "default-features": false,
+      "features": ["avcodec", "avformat", "swresample"]
+    }
   ]
 }

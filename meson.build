@@ -115,32 +115,40 @@ if vcpkg_exe.found()
     vcpkg_installed_dir = vcpkg_install_root / vcpkg_triplet
     vcpkg_include_dir = vcpkg_installed_dir / 'include'
     vcpkg_lib_dir = vcpkg_installed_dir / 'lib'
-    vcpkg_pkgconfig_dir = vcpkg_lib_dir / 'pkgconfig'
-    vcpkg_share_pkgconfig_dir = vcpkg_installed_dir / 'share' / 'pkgconfig'
+    vcpkg_bin_dir = vcpkg_installed_dir / 'bin'
+    vcpkg_debug_lib_dir = vcpkg_installed_dir / 'debug' / 'lib'
     
-    # Add vcpkg paths to environment
+    # Add vcpkg include and lib paths
     add_project_arguments(
       '-I' + vcpkg_include_dir,
       language: 'c'
     )
-    add_project_link_arguments(
-      '-L' + vcpkg_lib_dir,
-      language: 'c'
-    )
     
-    # Set PKG_CONFIG_PATH for dependency discovery
-    pkg_config_env = environment()
-    pkg_config_env.prepend('PKG_CONFIG_PATH', vcpkg_pkgconfig_dir)
-    pkg_config_env.prepend('PKG_CONFIG_PATH', vcpkg_share_pkgconfig_dir)
+    # On Windows, we need both release and debug lib dirs
+    if host_system == 'windows'
+      add_project_link_arguments(
+        '-L' + vcpkg_lib_dir,
+        '-L' + vcpkg_debug_lib_dir,
+        language: 'c'
+      )
+    else
+      add_project_link_arguments(
+        '-L' + vcpkg_lib_dir,
+        language: 'c'
+      )
+    endif
     
-    # Store vcpkg paths for later use
-    meson.add_devenv(pkg_config_env)
+    # Store vcpkg dirs for dependency lookups
+    vcpkg_cmake_prefix_path = vcpkg_installed_dir
+    vcpkg_found = true
   else
     warning('vcpkg install failed, falling back to system dependencies')
     message(vcpkg_result.stderr())
+    vcpkg_found = false
   endif
 else
   message('vcpkg not found, using system dependencies')
+  vcpkg_found = false
 endif
 
 # Configuration data
