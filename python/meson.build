@@ -42,7 +42,7 @@ gen_wrapper_sources = custom_target('generate_python_wrappers',
     py,
     gen_external_script,
     meson.project_source_root() / 'src' / 'aubio.h',
-    '@OUTPUT_DIR@',
+    '@OUTDIR@',
   ],
   depend_files: gen_external_script,
 )
@@ -62,8 +62,8 @@ pyaubio_sources = files(
   'ext/ufuncs.c',
 )
 
-# Add all generated wrapper sources
-pyaubio_sources += gen_wrapper_sources
+# Add all generated wrapper sources as a list
+pyaubio_sources = [pyaubio_sources, gen_wrapper_sources]
 
 # Include directories for Python extension
 # The current build directory ('.') is included to find generated aubio-generated.h

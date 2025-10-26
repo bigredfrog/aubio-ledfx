@@ -9,7 +9,7 @@ test_sound_gen = custom_target('generate_test_sound',
   output: test_sound_target,
   command: [
     python3,
-    '@CURRENT_SOURCE_DIR@' / 'create_tests_source.py',
+    files('create_tests_source.py'),
     '@OUTPUT@'
   ],
 )

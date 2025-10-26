@@ -97,13 +97,14 @@ if vcpkg_exe.found()
   message('Using vcpkg triplet: ' + vcpkg_triplet)
   
   # Install vcpkg dependencies
+  vcpkg_install_root = meson.project_source_root() / 'vcpkg_installed'
   vcpkg_result = run_command(
     vcpkg_exe,
     'install',
     '--triplet=' + vcpkg_triplet,
     '--x-wait-for-lock',
     '--x-manifest-root=' + meson.project_source_root(),
-    '--x-install-root=' + meson.project_source_root() / 'vcpkg_installed',
+    '--x-install-root=' + vcpkg_install_root,
     check: false
   )
   
@@ -111,22 +112,26 @@ if vcpkg_exe.found()
     message('vcpkg dependencies installed successfully')
     
     # Set up pkg-config and cmake paths for vcpkg
-    vcpkg_installed_dir = meson.project_source_root() / 'vcpkg_installed' / vcpkg_triplet
+    vcpkg_installed_dir = vcpkg_install_root / vcpkg_triplet
+    vcpkg_include_dir = vcpkg_installed_dir / 'include'
+    vcpkg_lib_dir = vcpkg_installed_dir / 'lib'
+    vcpkg_pkgconfig_dir = vcpkg_lib_dir / 'pkgconfig'
+    vcpkg_share_pkgconfig_dir = vcpkg_installed_dir / 'share' / 'pkgconfig'
     
     # Add vcpkg paths to environment
     add_project_arguments(
-      '-I' + vcpkg_installed_dir / 'include',
+      '-I' + vcpkg_include_dir,
       language: 'c'
     )
     add_project_link_arguments(
-      '-L' + vcpkg_installed_dir / 'lib',
+      '-L' + vcpkg_lib_dir,
       language: 'c'
     )
     
     # Set PKG_CONFIG_PATH for dependency discovery
     pkg_config_env = environment()
-    pkg_config_env.prepend('PKG_CONFIG_PATH', vcpkg_installed_dir / 'lib' / 'pkgconfig')
-    pkg_config_env.prepend('PKG_CONFIG_PATH', vcpkg_installed_dir / 'share' / 'pkgconfig')
+    pkg_config_env.prepend('PKG_CONFIG_PATH', vcpkg_pkgconfig_dir)
+    pkg_config_env.prepend('PKG_CONFIG_PATH', vcpkg_share_pkgconfig_dir)
     
     # Store vcpkg paths for later use
     meson.add_devenv(pkg_config_env)
