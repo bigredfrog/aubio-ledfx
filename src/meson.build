@@ -57,18 +57,20 @@ aubio_sources += files(
 )
 
 # FFT implementation sources
+# Always compile plain/ooura as fallback for all cases
+aubio_sources += files(
+  'spectral/dct_plain.c',
+  'spectral/dct_ooura.c',
+  'spectral/ooura_fft8g.c',
+)
+
+# Add optimized backend if available
 if conf_data.has('HAVE_FFTW3') or conf_data.has('HAVE_FFTW3F')
   aubio_sources += files('spectral/dct_fftw.c')
 elif conf_data.has('HAVE_ACCELERATE')
   aubio_sources += files('spectral/dct_accelerate.c')
 elif conf_data.has('HAVE_INTEL_IPP')
   aubio_sources += files('spectral/dct_ipp.c')
-else
-  aubio_sources += files(
-    'spectral/dct_plain.c',
-    'spectral/dct_ooura.c',
-    'spectral/ooura_fft8g.c',
-  )
 endif
 
 # Platform-specific sources
