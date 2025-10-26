@@ -91,16 +91,12 @@ else
 endif
 
 # Build Python extension module
-# On Windows, link against the static library since we don't export symbols from the DLL
-if host_system == 'windows'
-  pyaubio_link_with = libaubio_static
-  pyaubio_deps = [py.dependency()]
-  # Add aubio's dependencies directly since we're not using aubio_dep
-  pyaubio_deps += dependencies
-else
-  pyaubio_link_with = []
-  pyaubio_deps = [aubio_dep, py.dependency()]
-endif
+# For portable wheels, always link against the static library
+# This bundles all aubio code into the Python extension
+pyaubio_link_with = libaubio_static
+pyaubio_deps = [py.dependency()]
+# Add aubio's dependencies directly since we're linking statically
+pyaubio_deps += dependencies
 
 py.extension_module('_aubio',
   pyaubio_sources,
