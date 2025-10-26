@@ -2,6 +2,9 @@
 
 py = import('python').find_installation('python3', required: true)
 
+# Get C compiler for preprocessing (needed by gen_external.py)
+cc = meson.get_compiler('c')
+
 # Try to get numpy dependency
 numpy_dep = dependency('numpy', required: false)
 
@@ -45,6 +48,8 @@ gen_wrapper_sources = custom_target('generate_python_wrappers',
     '@OUTDIR@',
   ],
   depend_files: gen_external_script,
+  # Set CC environment variable so gen_external.py can find the compiler
+  env: {'CC': ' '.join(cc.cmd_array())},
 )
 
 # Python extension sources (only hand-written files)
@@ -84,9 +89,6 @@ if host_system == 'darwin'
     '-framework', 'AudioToolbox',
   ]
 elif host_system == 'windows'
-  # On Windows with MSVC, ignore missing debug Python library
-  pyaubio_link_args = ['/NODEFAULTLIB:python312_d.lib']
-else
   pyaubio_link_args = []
 endif
 

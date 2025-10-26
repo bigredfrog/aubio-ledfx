@@ -56,24 +56,29 @@ def get_preprocessor():
     if cc:
         # CC is set, use it
         cpp_cmd = cc.split()
-    elif os.name == 'nt':
-        # Windows - try cl.exe
-        cpp_cmd = ['cl.exe']
     else:
-        # Unix-like - try gcc first, then cc
-        for compiler in ['gcc', 'cc', 'clang']:
+        # Try to find an available C compiler
+        # On all platforms, try gcc/clang/cc first, then cl.exe as last resort
+        compilers_to_try = ['gcc', 'clang', 'cc']
+        if os.name == 'nt':
+            # On Windows, also try cl.exe as last resort
+            compilers_to_try.append('cl.exe')
+        
+        cpp_cmd = None
+        for compiler in compilers_to_try:
             try:
-                subprocess.run([compiler, '--version'], 
+                subprocess.run([compiler, '--version' if compiler != 'cl.exe' else '/?'], 
                              stdout=subprocess.PIPE, 
                              stderr=subprocess.PIPE, 
-                             check=True)
+                             check=True,
+                             timeout=5)
                 cpp_cmd = [compiler]
                 break
-            except (subprocess.CalledProcessError, FileNotFoundError):
+            except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
                 continue
-        else:
-            # Fallback to 'cc'
-            cpp_cmd = ['cc']
+        
+        if cpp_cmd is None:
+            raise RuntimeError("No C compiler found. Please install gcc, clang, or MSVC and ensure it's in PATH.")
     
     # Add preprocessor flag
     if 'cl.exe' in cpp_cmd[0] or 'cl' == cpp_cmd[0]:
