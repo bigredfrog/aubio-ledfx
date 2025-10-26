@@ -90,8 +90,12 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-${{ matrix.arch }}
+          # Each platform uploads its wheels with a descriptive name
+          # This makes it easy to identify and download wheels for specific platforms
+          name: wheels-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
+          # Don't compress wheels (they're already compressed)
+          compression-level: 0
 
   publish-to-pypi:
     name: Publish Python 🐍 distribution 📦 to PyPI
@@ -108,9 +112,14 @@ jobs:
     - name: Download all the dists
       uses: actions/download-artifact@v5
       with:
-        pattern: cibw-*
+        pattern: wheels-*
         path: dist/
         merge-multiple: true
+    - name: Download sdist
+      uses: actions/download-artifact@v5
+      with:
+        name: cibw-sdist
+        path: dist/
     - name: Publish distribution 📦 to PyPI using uv
       run: uv publish --trusted-publishing always
 
@@ -130,8 +139,13 @@ jobs:
     - name: Download all the dists
       uses: actions/download-artifact@v5
       with:
-        pattern: cibw-*
+        pattern: wheels-*
         path: dist/
         merge-multiple: true
+    - name: Download sdist
+      uses: actions/download-artifact@v5
+      with:
+        name: cibw-sdist
+        path: dist/
     - name: Publish distribution 📦 to Test PyPI using uv
       run: uv publish --publish-url https://test.pypi.org/legacy/ --trusted-publishing always
