@@ -17,21 +17,37 @@ else
   error('NumPy is required for building Python bindings. Please install numpy: pip install numpy')
 endif
 
-# Generate Python extension sources
-gen_external = files('lib/gen_external.py')
+# Generate Python extension wrapper sources
+# This generates gen-*.c files for each aubio object (dct, mfcc, notes, etc.)
+# and aubio-generated.c/.h that ties them all together
+gen_external_script = files('lib/gen_external.py')
 
-gen_sources = custom_target('generate_python_sources',
-  output: ['aubio-generated.c', 'aubio-generated.h'],
+gen_wrapper_sources = custom_target('generate_python_wrappers',
+  output: [
+    'aubio-generated.c',
+    'aubio-generated.h',
+    'gen-dct.c',
+    'gen-mfcc.c',
+    'gen-notes.c',
+    'gen-onset.c',
+    'gen-pitch.c',
+    'gen-pitchshift.c',
+    'gen-sampler.c',
+    'gen-specdesc.c',
+    'gen-tempo.c',
+    'gen-tss.c',
+    'gen-wavetable.c',
+  ],
   command: [
     py,
     '@SOURCE_DIR@' / 'lib' / 'gen_external.py',
-    '@CURRENT_SOURCE_DIR@' / '..' / 'src',
+    '@CURRENT_SOURCE_DIR@' / '..' / 'src' / 'aubio.h',
     '@OUTPUT_DIR@',
   ],
-  depend_files: gen_external,
+  depend_files: gen_external_script,
 )
 
-# Python extension sources (static files only)
+# Python extension sources (only hand-written files)
 pyaubio_sources = files(
   'ext/aubiomodule.c',
   'ext/aubioproxy.c',
@@ -46,23 +62,8 @@ pyaubio_sources = files(
   'ext/ufuncs.c',
 )
 
-# Add pre-generated wrapper sources (these exist in the source tree)
-pyaubio_sources += files(
-  'gen/gen-dct.c',
-  'gen/gen-mfcc.c',
-  'gen/gen-notes.c',
-  'gen/gen-onset.c',
-  'gen/gen-pitch.c',
-  'gen/gen-pitchshift.c',
-  'gen/gen-sampler.c',
-  'gen/gen-specdesc.c',
-  'gen/gen-tempo.c',
-  'gen/gen-tss.c',
-  'gen/gen-wavetable.c',
-)
-
-# Add the generated source from custom_target
-pyaubio_sources += gen_sources
+# Add all generated wrapper sources
+pyaubio_sources += gen_wrapper_sources
 
 # Include directories for Python extension
 pyaubio_inc = include_directories('ext', 'gen', '../src')

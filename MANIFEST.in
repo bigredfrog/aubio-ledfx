@@ -20,7 +20,8 @@ recursive-include tests *.h *.c *.py
 
 # Python extension files
 include python/ext/*.h python/ext/*.c
-include python/gen/*.h python/gen/*.c
+# Note: python/gen/*.c files are generated at build time by gen_external.py
+# and do not need to be in the source distribution
 recursive-include python/lib *.py
 include python/README.md
 include python/tests/eval_pitch
