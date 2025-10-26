@@ -77,6 +77,11 @@ jobs:
         with:
           submodules: 'recursive'
 
+          # https://github.com/pypa/cibuildwheel/issues/563
+      - name: Set macOS deployment target
+        if: runner.os == 'macos'
+        run: echo "MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion | cut -d '.' -f 1-2)" >> $GITHUB_ENV
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22
         env:
