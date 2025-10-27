@@ -328,11 +328,29 @@ else
   endif
 endif
 
-# rubberband
+# rubberband (C++ library, requires C++ standard library)
 rubberband_dep = dependency('rubberband', version: '>=1.3', required: get_option('rubberband'))
 if rubberband_dep.found()
   conf_data.set('HAVE_RUBBERBAND', 1)
   dependencies += rubberband_dep
+  # rubberband is a C++ library, so we need to link the C++ standard library
+  # On macOS with vcpkg, rubberband is built with libc++ (LLVM's C++ stdlib)
+  if host_system == 'darwin'
+    cpp_compiler = meson.get_compiler('cpp', required: false)
+    if cpp_compiler.found()
+      # Add C++ standard library dependency
+      cpp_stdlib_dep = cpp_compiler.find_library('c++', required: false)
+      if cpp_stdlib_dep.found()
+        dependencies += cpp_stdlib_dep
+      else
+        # Fallback: add link argument directly
+        add_project_link_arguments('-lc++', language: 'c')
+      endif
+    else
+      # No C++ compiler found, add link argument directly
+      add_project_link_arguments('-lc++', language: 'c')
+    endif
+  endif
 endif
 
 # JACK
