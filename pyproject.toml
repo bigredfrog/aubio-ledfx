@@ -62,16 +62,9 @@ before-all = [
     # Clone and bootstrap vcpkg (not available in yum for manylinux)
     "git clone https://github.com/microsoft/vcpkg.git /tmp/vcpkg",
     "cd /tmp/vcpkg && ./bootstrap-vcpkg.sh -disableMetrics",
-    # Install dependencies based on architecture
-    # x64-linux and arm64-linux triplets provide static libraries by default
-    # VCPKG_BUILD_TYPE=release skips Debug builds to speed up installation
+    # Install dependencies in a single command to preserve environment variables
     # Use devtoolset-10 compiler by setting CC and CXX environment variables
-    "cd {project}",
-    "export CC=/opt/rh/devtoolset-10/root/usr/bin/gcc",
-    "export CXX=/opt/rh/devtoolset-10/root/usr/bin/g++",
-    "ARCH=$(uname -m)",
-    "if [ \"$ARCH\" = \"x86_64\" ]; then VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=x64-linux; fi",
-    "if [ \"$ARCH\" = \"aarch64\" ]; then VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=arm64-linux; fi",
+    "cd {project} && export CC=/opt/rh/devtoolset-10/root/usr/bin/gcc && export CXX=/opt/rh/devtoolset-10/root/usr/bin/g++ && ARCH=$(uname -m) && if [ \"$ARCH\" = \"x86_64\" ]; then VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=x64-linux; elif [ \"$ARCH\" = \"aarch64\" ]; then VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=arm64-linux; fi",
 ]
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 
