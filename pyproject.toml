@@ -60,8 +60,8 @@ before-all = [
     "yum install -y git zip unzip tar curl make",
     "git clone https://github.com/microsoft/vcpkg.git /tmp/vcpkg",
     "cd /tmp/vcpkg && ./bootstrap-vcpkg.sh -disableMetrics",
-    "cd {project} && ARCH=$(uname -m) && if [ \"$ARCH\" = \"x86_64\" ]; then scl enable devtoolset-10 -- bash -lc 'VCPKG_OVERLAY_TRIPLETS=/tmp/vcpkg/triplets/community /tmp/vcpkg/vcpkg install --triplet=x64-linux-release'; fi",
-    "cd {project} && ARCH=$(uname -m) && if [ \"$ARCH\" = \"aarch64\" ]; then scl enable devtoolset-10 -- bash -lc 'VCPKG_OVERLAY_TRIPLETS=/tmp/vcpkg/triplets/community /tmp/vcpkg/vcpkg install --triplet=arm64-linux-release'; fi",
+    "cd {project} && ARCH=$(uname -m) && if [ \"$ARCH\" = \"x86_64\" ]; then scl enable devtoolset-10 -- bash -lc '/tmp/vcpkg/vcpkg install --triplet=x64-linux-release --overlay-triplets=/tmp/vcpkg/triplets/community'; fi",
+    "cd {project} && ARCH=$(uname -m) && if [ \"$ARCH\" = \"aarch64\" ]; then scl enable devtoolset-10 -- bash -lc '/tmp/vcpkg/vcpkg install --triplet=arm64-linux-release --overlay-triplets=/tmp/vcpkg/triplets/community'; fi",
 ]
 
 
@@ -92,10 +92,10 @@ PKG_CONFIG_PATH = "{project}\\vcpkg_installed\\x64-windows-release\\lib\\pkgconf
 # macOS: Use vcpkg to build dependencies from source targeting specific deployment targets
 # This ensures compatibility with older macOS versions (Homebrew builds for current OS only)
 # The MACOSX_DEPLOYMENT_TARGET is set in the workflow per-arch before vcpkg runs
-# VCPKG_BUILD_TYPE=release skips Debug builds to speed up installation
+# Use community release triplets to skip Debug builds and speed up installation
 before-all = [
-    "if [ $(uname -m) = 'x86_64' ]; then VCPKG_OVERLAY_TRIPLETS=$VCPKG_INSTALLATION_ROOT/triplets/community $VCPKG_INSTALLATION_ROOT/vcpkg install --triplet=x64-osx-release --vcpkg-root=$VCPKG_INSTALLATION_ROOT; fi",
-    "if [ $(uname -m) = 'arm64' ]; then VCPKG_OVERLAY_TRIPLETS=$VCPKG_INSTALLATION_ROOT/triplets/community $VCPKG_INSTALLATION_ROOT/vcpkg install --triplet=arm64-osx-release --vcpkg-root=$VCPKG_INSTALLATION_ROOT; fi",
+    "if [ $(uname -m) = 'x86_64' ]; then $VCPKG_INSTALLATION_ROOT/vcpkg install --triplet=x64-osx-release --overlay-triplets=$VCPKG_INSTALLATION_ROOT/triplets/community --vcpkg-root=$VCPKG_INSTALLATION_ROOT; fi",
+    "if [ $(uname -m) = 'arm64' ]; then $VCPKG_INSTALLATION_ROOT/vcpkg install --triplet=arm64-osx-release --overlay-triplets=$VCPKG_INSTALLATION_ROOT/triplets/community --vcpkg-root=$VCPKG_INSTALLATION_ROOT; fi",
 ]
 
 
