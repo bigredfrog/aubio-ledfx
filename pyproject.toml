@@ -65,11 +65,13 @@ before-all = [
     # Install dependencies based on architecture
     # x64-linux and arm64-linux triplets provide static libraries by default
     # VCPKG_BUILD_TYPE=release skips Debug builds to speed up installation
-    # Use devtoolset-10 compiler (already in manylinux2014 container) via scl
+    # Use devtoolset-10 compiler by setting CC and CXX environment variables
     "cd {project}",
+    "export CC=/opt/rh/devtoolset-10/root/usr/bin/gcc",
+    "export CXX=/opt/rh/devtoolset-10/root/usr/bin/g++",
     "ARCH=$(uname -m)",
-    "if [ \"$ARCH\" = \"x86_64\" ]; then scl enable devtoolset-10 'VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=x64-linux'; fi",
-    "if [ \"$ARCH\" = \"aarch64\" ]; then scl enable devtoolset-10 'VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=arm64-linux'; fi",
+    "if [ \"$ARCH\" = \"x86_64\" ]; then VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=x64-linux; fi",
+    "if [ \"$ARCH\" = \"aarch64\" ]; then VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=arm64-linux; fi",
 ]
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 
