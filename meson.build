@@ -336,20 +336,8 @@ if rubberband_dep.found()
   # rubberband is a C++ library, so we need to link the C++ standard library
   # On macOS with vcpkg, rubberband is built with libc++ (LLVM's C++ stdlib)
   if host_system == 'darwin'
-    cpp_compiler = meson.get_compiler('cpp', required: false)
-    if cpp_compiler.found()
-      # Add C++ standard library dependency
-      cpp_stdlib_dep = cpp_compiler.find_library('c++', required: false)
-      if cpp_stdlib_dep.found()
-        dependencies += cpp_stdlib_dep
-      else
-        # Fallback: add link argument directly
-        add_project_link_arguments('-lc++', language: 'c')
-      endif
-    else
-      # No C++ compiler found, add link argument directly
-      add_project_link_arguments('-lc++', language: 'c')
-    endif
+    # Add C++ standard library link argument directly
+    add_project_link_arguments('-lc++', language: 'c')
   endif
 endif
 
