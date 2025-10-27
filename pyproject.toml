@@ -54,29 +54,26 @@ test-requires = ["pytest", "numpy"]
 test-command = "pytest {project}/python/tests -v || true"
 
 [tool.cibuildwheel.linux]
-# Linux: Install dependencies via yum (AlmaLinux container)
-# Note: rubberband and ffmpeg may not be available in default repos
-before-all = [
-    # Enable EPEL and PowerTools for additional packages
-    "yum install -y epel-release",
-    "yum config-manager --set-enabled powertools || yum config-manager --set-enabled crb || true",
-    # Install available audio processing libraries
-    "yum install -y libsndfile-devel libsamplerate-devel fftw-devel",
-    # Try to install ffmpeg-free-devel if available (RHEL 9+ / AlmaLinux 9+)
-    "yum install -y ffmpeg-free-devel || true",
-]
+# Linux: vcpkg dependencies are installed by the workflow before cibuildwheel runs
+# No before-all commands needed here
+
+[tool.cibuildwheel.linux.environment]
+# Paths are set by workflow based on architecture
+# CMAKE_PREFIX_PATH and PKG_CONFIG_PATH configured per-arch in workflow
 
 [tool.cibuildwheel.windows]
 # Windows: Use vcpkg to install dependencies before building
 # GitHub Actions runners have vcpkg pre-installed at VCPKG_INSTALLATION_ROOT
+# Use x64-windows-static triplet to get static libraries that can be embedded in wheels
 before-all = [
-    "if not exist vcpkg_installed %VCPKG_INSTALLATION_ROOT%\\vcpkg.exe install --triplet=x64-windows",
+    "if not exist vcpkg_installed %VCPKG_INSTALLATION_ROOT%\\vcpkg.exe install --triplet=x64-windows-static",
 ]
 
 [tool.cibuildwheel.windows.environment]
 # Set paths so Meson can find vcpkg packages via CMake and pkg-config
-CMAKE_PREFIX_PATH = "{project}\\vcpkg_installed\\x64-windows"
-PKG_CONFIG_PATH = "{project}\\vcpkg_installed\\x64-windows\\lib\\pkgconfig;{project}\\vcpkg_installed\\x64-windows\\share\\pkgconfig"
+# Use x64-windows-static paths
+CMAKE_PREFIX_PATH = "{project}\\vcpkg_installed\\x64-windows-static"
+PKG_CONFIG_PATH = "{project}\\vcpkg_installed\\x64-windows-static\\lib\\pkgconfig;{project}\\vcpkg_installed\\x64-windows-static\\share\\pkgconfig"
 
 [tool.cibuildwheel.macos]
 # macOS: Use vcpkg to build dependencies from source targeting specific deployment targets

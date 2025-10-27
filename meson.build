@@ -338,6 +338,19 @@ if rubberband_dep.found()
   if host_system == 'darwin'
     # Add C++ standard library link argument directly
     add_project_link_arguments('-lc++', language: 'c')
+    # rubberband built by vcpkg uses SLEEF for FFT, but doesn't list it in pkg-config
+    # Try to find and link SLEEF
+    sleef_dep = dependency('sleef', required: false)
+    if sleef_dep.found()
+      dependencies += sleef_dep
+    else
+      # If pkg-config doesn't find it, try as a library
+      cc = meson.get_compiler('c')
+      sleef_lib = cc.find_library('sleef', required: false)
+      if sleef_lib.found()
+        dependencies += sleef_lib
+      endif
+    endif
   endif
 endif
 
