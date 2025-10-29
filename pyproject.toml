@@ -55,7 +55,7 @@ test-requires = ["pytest", "numpy==1.26.4"]
 test-command = "pytest {project}/python/tests || true"
 
 # Disable build isolation so environment variables (like PKG_CONFIG_PATH) are passed through
-build-frontend = { name = "pip", args = ["--no-isolation"] }
+build-frontend = { name = "pip", args = ["--no-build-isolation"] }
 
 [tool.cibuildwheel.linux]
 # Linux: vcpkg dependencies are installed inside the manylinux container
