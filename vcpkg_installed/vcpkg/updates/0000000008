@@ -1,0 +1,7 @@
+Package: vcpkg-pkgconfig-get-modules
+Version: 2024-04-03
+Depends: pkgconf
+Architecture: x64-linux
+Multi-Arch: same
+Abi: e72fbdb312816750516d7db5d920fea88944a2bf52c9376689fd1e5ad81bfbb2
+Status: install ok half-installed
