@@ -106,7 +106,8 @@ before-all = [
 #   3. Bundle them into the wheel's .libs directory
 #   4. Patch imports to use bundled DLLs
 # Result: Wheel works on any Windows system without vcpkg or dependencies installed
-repair-wheel-command = "delvewheel repair --add-path {project}\\vcpkg_installed\\x64-windows-release\\bin -w {dest_dir} {wheel}"
+# Note: Use absolute path with %CD% (current directory) since {project} isn't expanded in repair-wheel-command
+repair-wheel-command = "delvewheel repair --add-path %CD%\\vcpkg_installed\\x64-windows-release\\bin -w {dest_dir} {wheel}"
 
 [tool.cibuildwheel.windows.environment]
 # Set paths so Meson can find vcpkg packages via CMake and pkg-config
