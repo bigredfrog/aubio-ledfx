@@ -5,7 +5,7 @@ project('aubio', 'c',
     'warning_level=2',
     'c_std=c99',
   ],
-  meson_version: '>=0.58.0',
+  meson_version: '>=1.9.0',
 )
 
 # Parse version from VERSION file
@@ -183,8 +183,6 @@ if vcpkg_found
   vcpkg_library_dirs = [vcpkg_lib_dir]
 endif
 
-use_dependency_dirs = vcpkg_pkg_config_dirs.length() > 0 and meson.version().version_compare('>=0.63.0')
-
 # Configuration data
 conf_data = configuration_data()
 conf_data.set('HAVE_CONFIG_H', 1)
@@ -341,36 +339,76 @@ if host_system == 'darwin' and get_option('apple-audio').auto()
   endif
 endif
 
-# libsndfile
-sndfile_opt = get_option('sndfile')
-if not sndfile_opt.disabled()
-  if use_dependency_dirs
-    sndfile_dep = dependency('sndfile', version: '>=1.0.4', required: false, dirs: vcpkg_pkg_config_dirs)
+# libsndfile, jack, flac share the same detection flow
+single_feature_specs = [
+  {
+    'option': 'sndfile',
+    'pkg': 'sndfile',
+    'version': '>=1.0.4',
+    'fallback_libs': ['sndfile'],
+    'define': 'HAVE_SNDFILE',
+    'auto_message': 'libsndfile not found, disabling support automatically',
+    'error_message': 'libsndfile support was requested but the dependency could not be found',
+  },
+  {
+    'option': 'jack',
+    'pkg': 'jack',
+    'fallback_libs': ['jack'],
+    'define': 'HAVE_JACK',
+    'auto_message': 'JACK not found, disabling support automatically',
+    'error_message': 'JACK support was requested but the dependency could not be found',
+  },
+  {
+    'option': 'flac',
+    'pkg': 'flac',
+    'fallback_libs': ['FLAC'],
+    'define': 'HAVE_FLAC',
+    'auto_message': 'FLAC not found, disabling support automatically',
+    'error_message': 'FLAC support was requested but the dependency could not be found',
+  },
+]
+
+foreach spec : single_feature_specs
+  opt = get_option(spec['option'])
+  if opt.disabled()
+    continue
+  endif
+
+  has_version = spec.has_key('version')
+  if has_version
+    dep = dependency(spec['pkg'], version: spec['version'], required: false, dirs: vcpkg_pkg_config_dirs, disabler: true, not_found_message: spec['error_message'])
   else
-    sndfile_dep = dependency('sndfile', version: '>=1.0.4', required: false)
+    dep = dependency(spec['pkg'], required: false, dirs: vcpkg_pkg_config_dirs, disabler: true, not_found_message: spec['error_message'])
   endif
-  if not sndfile_dep.found() and vcpkg_found
-    sndfile_dep = cc.find_library('sndfile', dirs: vcpkg_library_dirs, required: sndfile_opt.enabled())
+
+  if not dep.found() and vcpkg_found and spec.has_key('fallback_libs')
+    foreach lib_name : spec['fallback_libs']
+      dep = cc.find_library(lib_name, dirs: vcpkg_library_dirs, required: opt.enabled())
+      if dep.found()
+        break
+      endif
+    endforeach
   endif
-  if sndfile_dep.found()
-    conf_data.set('HAVE_SNDFILE', 1)
-    dependencies += sndfile_dep
-  elif sndfile_opt.enabled()
-    error('libsndfile support was requested but the dependency could not be found')
-  elif sndfile_opt.auto()
-    message('libsndfile not found, disabling support automatically')
+
+  if dep.found()
+    conf_data.set(spec['define'], 1)
+    dependencies += dep
+  elif opt.enabled()
+    error(spec['error_message'])
+  elif opt.auto()
+    auto_msg = '@0@ not found, disabling support automatically'.format(spec['pkg'])
+    if spec.has_key('auto_message')
+      auto_msg = spec['auto_message']
+    endif
+    message(auto_msg)
   endif
-endif
+endforeach
 
 # libsamplerate (not compatible with double precision)
 if not enable_double
   samplerate_opt = get_option('samplerate')
   if not samplerate_opt.disabled()
-    if use_dependency_dirs
-      samplerate_dep = dependency('samplerate', version: '>=0.0.15', required: false, dirs: vcpkg_pkg_config_dirs)
-    else
-      samplerate_dep = dependency('samplerate', version: '>=0.0.15', required: false)
-    endif
+    samplerate_dep = dependency('samplerate', version: '>=0.0.15', required: false, dirs: vcpkg_pkg_config_dirs, disabler: true, not_found_message: 'libsamplerate support was requested but the dependency could not be found')
     if not samplerate_dep.found() and vcpkg_found
       samplerate_dep = cc.find_library('samplerate', dirs: vcpkg_library_dirs, required: samplerate_opt.enabled())
     endif
@@ -392,34 +430,21 @@ endif
 # rubberband (C++ library, requires C++ standard library)
 rubberband_opt = get_option('rubberband')
 if not rubberband_opt.disabled()
-  if use_dependency_dirs
-    rubberband_dep = dependency('rubberband', version: '>=1.3', required: false, dirs: vcpkg_pkg_config_dirs)
-  else
-    rubberband_dep = dependency('rubberband', version: '>=1.3', required: false)
-  endif
+  rubberband_dep = dependency('rubberband', version: '>=1.3', required: false, dirs: vcpkg_pkg_config_dirs, disabler: true, not_found_message: 'rubberband support was requested but the dependency could not be found')
   if not rubberband_dep.found() and vcpkg_found
     rubberband_dep = cc.find_library('rubberband', dirs: vcpkg_library_dirs, required: rubberband_opt.enabled())
   endif
   if rubberband_dep.found()
     conf_data.set('HAVE_RUBBERBAND', 1)
     dependencies += rubberband_dep
-    # rubberband is a C++ library, so we need to link the C++ standard library
-    # On macOS with vcpkg, rubberband is built with libc++ (LLVM's C++ stdlib)
     if host_system == 'darwin'
-      # Add C++ standard library link argument directly
       add_project_link_arguments('-lc++', language: 'c')
-      # rubberband built by vcpkg uses SLEEF for FFT, but doesn't list it in pkg-config
-      # Try to find and link SLEEF
-      sleef_dep = dependency('sleef', required: false)
+      sleef_dep = dependency('sleef', required: false, dirs: vcpkg_pkg_config_dirs, disabler: true)
+      if not sleef_dep.found() and vcpkg_found
+        sleef_dep = cc.find_library('sleef', dirs: vcpkg_library_dirs, required: false)
+      endif
       if sleef_dep.found()
         dependencies += sleef_dep
-      else
-        # If pkg-config doesn't find it, try as a library
-        cc = meson.get_compiler('c')
-        sleef_lib = cc.find_library('sleef', required: false)
-        if sleef_lib.found()
-          dependencies += sleef_lib
-        endif
       endif
     endif
   elif rubberband_opt.enabled()
@@ -429,61 +454,36 @@ if not rubberband_opt.disabled()
   endif
 endif
 
-# JACK
-jack_opt = get_option('jack')
-if not jack_opt.disabled()
-  if use_dependency_dirs
-    jack_dep = dependency('jack', required: false, dirs: vcpkg_pkg_config_dirs)
-  else
-    jack_dep = dependency('jack', required: false)
-  endif
-  if not jack_dep.found() and vcpkg_found
-    jack_dep = cc.find_library('jack', dirs: vcpkg_library_dirs, required: jack_opt.enabled())
-  endif
-  if jack_dep.found()
-    conf_data.set('HAVE_JACK', 1)
-    dependencies += jack_dep
-  elif jack_opt.enabled()
-    error('JACK support was requested but the dependency could not be found')
-  elif jack_opt.auto()
-    message('JACK not found, disabling support automatically')
-  endif
-endif
-
 # libav (avcodec, avformat, avutil, swresample)
 avcodec_opt = get_option('avcodec')
 if not avcodec_opt.disabled()
-  if use_dependency_dirs
-    avcodec_dep = dependency('libavcodec', version: '>=54.35.0', required: false, dirs: vcpkg_pkg_config_dirs)
-    avformat_dep = dependency('libavformat', version: '>=52.3.0', required: false, dirs: vcpkg_pkg_config_dirs)
-    avutil_dep = dependency('libavutil', version: '>=52.3.0', required: false, dirs: vcpkg_pkg_config_dirs)
-    swresample_dep = dependency('libswresample', version: '>=1.2.0', required: false, dirs: vcpkg_pkg_config_dirs)
-  else
-    avcodec_dep = dependency('libavcodec', version: '>=54.35.0', required: false)
-    avformat_dep = dependency('libavformat', version: '>=52.3.0', required: false)
-    avutil_dep = dependency('libavutil', version: '>=52.3.0', required: false)
-    swresample_dep = dependency('libswresample', version: '>=1.2.0', required: false)
-  endif
-  if not avcodec_dep.found() and vcpkg_found
-    avcodec_dep = cc.find_library('avcodec', dirs: vcpkg_library_dirs, required: avcodec_opt.enabled())
-  endif
-  if not avformat_dep.found() and vcpkg_found
-    avformat_dep = cc.find_library('avformat', dirs: vcpkg_library_dirs, required: avcodec_opt.enabled())
-  endif
-  if not avutil_dep.found() and vcpkg_found
-    avutil_dep = cc.find_library('avutil', dirs: vcpkg_library_dirs, required: avcodec_opt.enabled())
-  endif
-  if not swresample_dep.found() and vcpkg_found
-    swresample_dep = cc.find_library('swresample', dirs: vcpkg_library_dirs, required: false)
-  endif
+  libav_specs = [
+    {'pkg': 'libavcodec', 'version': '>=54.35.0', 'fallback': 'avcodec', 'define': 'HAVE_AVCODEC'},
+    {'pkg': 'libavformat', 'version': '>=52.3.0', 'fallback': 'avformat', 'define': 'HAVE_AVFORMAT'},
+    {'pkg': 'libavutil', 'version': '>=52.3.0', 'fallback': 'avutil', 'define': 'HAVE_AVUTIL'},
+    {'pkg': 'libswresample', 'version': '>=1.2.0', 'fallback': 'swresample', 'define': 'HAVE_SWRESAMPLE'},
+  ]
 
-  if avcodec_dep.found() and avformat_dep.found() and avutil_dep.found() and swresample_dep.found()
+  libav_deps = []
+  libav_missing = false
+  foreach spec : libav_specs
+    dep = dependency(spec['pkg'], version: spec['version'], required: false, dirs: vcpkg_pkg_config_dirs, disabler: true, not_found_message: 'libavcodec support was requested but the dependencies could not be found')
+    if not dep.found() and vcpkg_found
+      dep = cc.find_library(spec['fallback'], dirs: vcpkg_library_dirs, required: avcodec_opt.enabled())
+    endif
+    if dep.found()
+      libav_deps += dep
+    else
+      libav_missing = true
+    endif
+  endforeach
+
+  if not libav_missing
     conf_data.set('HAVE_LIBAV', 1)
-    conf_data.set('HAVE_AVCODEC', 1)
-    conf_data.set('HAVE_AVFORMAT', 1)
-    conf_data.set('HAVE_AVUTIL', 1)
-    conf_data.set('HAVE_SWRESAMPLE', 1)
-    dependencies += [avcodec_dep, avformat_dep, avutil_dep, swresample_dep]
+    foreach spec : libav_specs
+      conf_data.set(spec['define'], 1)
+    endforeach
+    dependencies += libav_deps
   elif avcodec_opt.enabled()
     error('libavcodec support was requested but the dependencies could not be found')
   elif avcodec_opt.auto()
@@ -494,52 +494,32 @@ endif
 # vorbis
 vorbis_opt = get_option('vorbis')
 if not vorbis_opt.disabled()
-  if use_dependency_dirs
-    vorbisenc_dep = dependency('vorbisenc', required: false, dirs: vcpkg_pkg_config_dirs)
-    vorbis_dep = dependency('vorbis', required: false, dirs: vcpkg_pkg_config_dirs)
-    ogg_dep = dependency('ogg', required: false, dirs: vcpkg_pkg_config_dirs)
-  else
-    vorbisenc_dep = dependency('vorbisenc', required: false)
-    vorbis_dep = dependency('vorbis', required: false)
-    ogg_dep = dependency('ogg', required: false)
-  endif
-  if not vorbisenc_dep.found() and vcpkg_found
-    vorbisenc_dep = cc.find_library('vorbisenc', dirs: vcpkg_library_dirs, required: vorbis_opt.enabled())
-  endif
-  if not vorbis_dep.found() and vcpkg_found
-    vorbis_dep = cc.find_library('vorbis', dirs: vcpkg_library_dirs, required: vorbis_opt.enabled())
-  endif
-  if not ogg_dep.found() and vcpkg_found
-    ogg_dep = cc.find_library('ogg', dirs: vcpkg_library_dirs, required: vorbis_opt.enabled())
-  endif
-  if vorbisenc_dep.found() and vorbis_dep.found() and ogg_dep.found()
+  vorbis_specs = [
+    {'pkg': 'vorbisenc', 'fallback': 'vorbisenc'},
+    {'pkg': 'vorbis', 'fallback': 'vorbis'},
+    {'pkg': 'ogg', 'fallback': 'ogg'},
+  ]
+  vorbis_deps = []
+  vorbis_missing = false
+  foreach spec : vorbis_specs
+    dep = dependency(spec['pkg'], required: false, dirs: vcpkg_pkg_config_dirs, disabler: true, not_found_message: 'Vorbis support was requested but the dependencies could not be found')
+    if not dep.found() and vcpkg_found
+      dep = cc.find_library(spec['fallback'], dirs: vcpkg_library_dirs, required: vorbis_opt.enabled())
+    endif
+    if dep.found()
+      vorbis_deps += dep
+    else
+      vorbis_missing = true
+    endif
+  endforeach
+
+  if not vorbis_missing
     conf_data.set('HAVE_VORBISENC', 1)
-    dependencies += [vorbisenc_dep, vorbis_dep, ogg_dep]
+    dependencies += vorbis_deps
   elif vorbis_opt.enabled()
     error('Vorbis support was requested but the dependencies could not be found')
   elif vorbis_opt.auto()
     message('Vorbis not found, disabling support automatically')
-  endif
-endif
-
-# FLAC
-flac_opt = get_option('flac')
-if not flac_opt.disabled()
-  if use_dependency_dirs
-    flac_dep = dependency('flac', required: false, dirs: vcpkg_pkg_config_dirs)
-  else
-    flac_dep = dependency('flac', required: false)
-  endif
-  if not flac_dep.found() and vcpkg_found
-    flac_dep = cc.find_library('FLAC', dirs: vcpkg_library_dirs, required: flac_opt.enabled())
-  endif
-  if flac_dep.found()
-    conf_data.set('HAVE_FLAC', 1)
-    dependencies += flac_dep
-  elif flac_opt.enabled()
-    error('FLAC support was requested but the dependency could not be found')
-  elif flac_opt.auto()
-    message('FLAC not found, disabling support automatically')
   endif
 endif
 
@@ -594,3 +574,13 @@ pkg.generate(
   filebase: 'aubio',
   subdirs: 'aubio',
 )
+
+meson.summary({
+  'libsndfile': conf_data.has('HAVE_SNDFILE'),
+  'libsamplerate': conf_data.has('HAVE_SAMPLERATE'),
+  'rubberband': conf_data.has('HAVE_RUBBERBAND'),
+  'JACK': conf_data.has('HAVE_JACK'),
+  'FFmpeg/libav': conf_data.has('HAVE_LIBAV'),
+  'Vorbis': conf_data.has('HAVE_VORBISENC'),
+  'FLAC': conf_data.has('HAVE_FLAC'),
+}, section: 'Optional dependencies')

@@ -1,12 +1,9 @@
 # Python bindings for aubio
 
-py = import('python').find_installation('python3', required: true)
+py = import('python').find_installation('python3', modules: ['numpy'], required: true)
 
 # Get C compiler for preprocessing (needed by gen_external.py)
 cc = meson.get_compiler('c')
-
-# Try to get numpy dependency
-numpy_dep = dependency('numpy', required: false)
 
 # Get numpy include directory
 numpy_inc_result = run_command(py, 
@@ -67,8 +64,8 @@ pyaubio_sources = files(
   'ext/ufuncs.c',
 )
 
-# Add all generated wrapper sources as a list
-pyaubio_sources = [pyaubio_sources, gen_wrapper_sources]
+# Add all generated wrapper sources
+pyaubio_sources += gen_wrapper_sources
 
 # Include directories for Python extension
 # The current build directory ('.') is included to find generated aubio-generated.h

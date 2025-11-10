@@ -88,7 +88,7 @@ aubio uses the [Meson build system](https://mesonbuild.com/) and [vcpkg](https:/
 
 ### Prerequisites
 
-- **Meson** >= 0.58.0: `pip install meson` or `apt install meson`
+- **Meson** >= 1.9.0: `pip install "meson>=1.9.0"` or `apt install meson`
 - **Ninja**: `pip install ninja` or `apt install ninja-build`
 - **C compiler**: GCC, Clang, or MSVC
 - **Python** >= 3.8 (for Python bindings)
