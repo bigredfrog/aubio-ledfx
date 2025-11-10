@@ -35,7 +35,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install Meson and build dependencies
-        run: uv pip install --system "meson>=1.9.0" meson-python ninja "numpy>=1.26.4"
+        run: uv pip install "meson>=1.9.0" meson-python ninja "numpy>=1.26.4"
 
       - name: Build source tarball
         run: uv build --sdist
