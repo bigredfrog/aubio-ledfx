@@ -30,7 +30,8 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "numpy>=1.19.0",
+    "numpy==1.26.4; platform_system != 'Darwin' and platform_machine != 'aarch64'",
+    "numpy==2.0.0; platform_system == 'Darwin' and platform_machine == 'aarch64'",
 ]
 
 [project.urls]
@@ -47,7 +48,7 @@ aubiocut = "aubio.cut:main"
 build = ["cp310-*", "cp311-*", "cp312-*", "cp313-*"]
 before-build = "pip install meson-python ninja 'numpy>=1.26.4'"
 # Skip 32-bit builds and PyPy
-skip = ["*-win32", "*-manylinux_i686", "pp*", "*-musllinux*"]
+skip = ["*-win32", "*-manylinux_i686", "*-musllinux*"]
 
 # Test the wheels
 
@@ -98,25 +99,7 @@ CMAKE_PREFIX_PATH = "{project}\\vcpkg_installed\\x64-windows"
 PKG_CONFIG_PATH = "{project}\\vcpkg_installed\\x64-windows\\lib\\pkgconfig;{project}\\vcpkg_installed\\x64-windows\\share\\pkgconfig"
 
 
-[tool.cibuildwheel.macos]
-# macOS: Use vcpkg to build dependencies from source targeting specific deployment targets
-# This ensures compatibility with older macOS versions (Homebrew builds for current OS only)
-# The MACOSX_DEPLOYMENT_TARGET is set in the workflow per-arch before vcpkg runs
-# VCPKG_BUILD_TYPE=release skips Debug builds to speed up installation
-# Install to project directory (omit --vcpkg-root) so packages go to vcpkg_installed/
-before-all = [
-    "cd {project} && if [ $(uname -m) = 'x86_64' ]; then VCPKG_BUILD_TYPE=release $VCPKG_INSTALLATION_ROOT/vcpkg install --triplet=x64-osx; fi",
-    "cd {project} && if [ $(uname -m) = 'arm64' ]; then VCPKG_BUILD_TYPE=release $VCPKG_INSTALLATION_ROOT/vcpkg install --triplet=arm64-osx; fi",
-    # Debug: show what packages were installed
-    "ls -la {project}/vcpkg_installed/*/lib/pkgconfig/ || true",
-]
 
-
-
-[tool.cibuildwheel.macos.environment]
-# Set paths so Meson can find vcpkg packages based on architecture
-CMAKE_PREFIX_PATH = "{project}/vcpkg_installed/x64-osx:{project}/vcpkg_installed/arm64-osx"
-PKG_CONFIG_PATH = "{project}/vcpkg_installed/x64-osx/lib/pkgconfig:{project}/vcpkg_installed/x64-osx/share/pkgconfig:{project}/vcpkg_installed/arm64-osx/lib/pkgconfig:{project}/vcpkg_installed/arm64-osx/share/pkgconfig"
 
 
 [tool.meson-python]
