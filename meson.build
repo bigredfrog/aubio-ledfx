@@ -571,7 +571,7 @@ pkg.generate(
   subdirs: 'aubio',
 )
 
-meson.summary({
+summary({
   'libsndfile': conf_data.has('HAVE_SNDFILE'),
   'libsamplerate': conf_data.has('HAVE_SAMPLERATE'),
   'rubberband': conf_data.has('HAVE_RUBBERBAND'),
