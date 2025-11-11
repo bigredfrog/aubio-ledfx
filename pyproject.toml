@@ -68,9 +68,8 @@ before-all = [
     "cd /tmp/vcpkg && ./bootstrap-vcpkg.sh -disableMetrics",
     # Install dependencies with CC/CXX environment variables set to point vcpkg to gcc-toolset-14
     # vcpkg will use these for compiler detection
-    # x64: Use standard x64-linux triplet (static libs = portable)
-    # ARM64: Use custom arm64-linux-pic triplet (adds -fPIC for FFmpeg compatibility)
-    "cd {project} && ARCH=$(uname -m) && if [ \"$ARCH\" = \"x86_64\" ]; then CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=x64-linux; fi",
+    # BOTH x64 and ARM64: Use custom triplets with -fPIC for FFmpeg compatibility
+    "cd {project} && ARCH=$(uname -m) && if [ \"$ARCH\" = \"x86_64\" ]; then CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=x64-linux-pic --overlay-triplets={project}/vcpkg-triplets; fi",
     "cd {project} && ARCH=$(uname -m) && if [ \"$ARCH\" = \"aarch64\" ]; then CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=arm64-linux-pic --overlay-triplets={project}/vcpkg-triplets; fi",
     # Debug: show what packages were installed
     "ls -la {project}/vcpkg_installed/*/lib/pkgconfig/ || true",
@@ -80,9 +79,9 @@ before-all = [
 
 [tool.cibuildwheel.linux.environment]
 # Set paths so Meson can find vcpkg packages based on architecture
-# Note: arm64-linux-pic is our custom triplet with -fPIC for FFmpeg compatibility
-CMAKE_PREFIX_PATH = "{project}/vcpkg_installed/x64-linux:{project}/vcpkg_installed/arm64-linux:{project}/vcpkg_installed/arm64-linux-pic"
-PKG_CONFIG_PATH = "{project}/vcpkg_installed/x64-linux/lib/pkgconfig:{project}/vcpkg_installed/x64-linux/share/pkgconfig:{project}/vcpkg_installed/arm64-linux/lib/pkgconfig:{project}/vcpkg_installed/arm64-linux/share/pkgconfig:{project}/vcpkg_installed/arm64-linux-pic/lib/pkgconfig:{project}/vcpkg_installed/arm64-linux-pic/share/pkgconfig"
+# Note: Both x64-linux-pic and arm64-linux-pic are custom triplets with -fPIC for FFmpeg compatibility
+CMAKE_PREFIX_PATH = "{project}/vcpkg_installed/x64-linux-pic:{project}/vcpkg_installed/arm64-linux-pic"
+PKG_CONFIG_PATH = "{project}/vcpkg_installed/x64-linux-pic/lib/pkgconfig:{project}/vcpkg_installed/x64-linux-pic/share/pkgconfig:{project}/vcpkg_installed/arm64-linux-pic/lib/pkgconfig:{project}/vcpkg_installed/arm64-linux-pic/share/pkgconfig"
 CC = "/opt/rh/gcc-toolset-14/root/usr/bin/gcc"
 CXX = "/opt/rh/gcc-toolset-14/root/usr/bin/g++"
 
