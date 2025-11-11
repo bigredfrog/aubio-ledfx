@@ -63,6 +63,8 @@ build-frontend = { name = "pip", args = ["--no-build-isolation"] }
 # Linux: vcpkg dependencies are installed inside the manylinux container
 # Use static libraries for true portability (no external .so dependencies)
 # Install only the dependencies for the current architecture (detected via AUDITWHEEL_ARCH)
+# NOTE: rubberband and ffmpeg are skipped on Linux due to PIC issues with static linking
+# (ffmpeg's assembly code causes "relocation R_X86_64_PC32... can not be used when making a shared object")
 before-all = """
     yum install -y git zip unzip tar curl make nasm && \
     git clone https://github.com/microsoft/vcpkg.git /tmp/vcpkg && \
@@ -77,34 +79,15 @@ before-all = """
     fi && \
     echo "=== Installing vcpkg dependencies for $AUDITWHEEL_ARCH (triplet: $VCPKG_TRIPLET) ===" && \
     cd {project} && \
-    if [ "$AUDITWHEEL_ARCH" = "aarch64" ]; then
-        echo "ARM64: Installing dependencies individually to handle potential build failures" && \
-        for pkg in pkgconf libsndfile fftw3 libsamplerate; do
-            echo "Installing $pkg..." && \
-            CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc \
-            CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ \
-            VCPKG_BUILD_TYPE=release \
-            /tmp/vcpkg/vcpkg install $pkg --triplet=$VCPKG_TRIPLET --overlay-triplets=./vcpkg-triplets --allow-unsupported || \
-            echo "WARNING: Failed to install $pkg on ARM64, continuing..."
-        done && \
-        echo "Attempting rubberband (may fail on ARM64)..." && \
+    echo "Installing core audio dependencies (libsndfile, fftw3, libsamplerate)..." && \
+    for pkg in pkgconf libsndfile fftw3 libsamplerate; do
+        echo "Installing $pkg..." && \
         CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc \
         CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ \
         VCPKG_BUILD_TYPE=release \
-        /tmp/vcpkg/vcpkg install rubberband --triplet=$VCPKG_TRIPLET --overlay-triplets=./vcpkg-triplets --allow-unsupported || \
-        echo "WARNING: rubberband failed on ARM64 (expected, skipping)" && \
-        echo "Attempting ffmpeg (may fail on ARM64 with static linking)..." && \
-        CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc \
-        CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ \
-        VCPKG_BUILD_TYPE=release \
-        /tmp/vcpkg/vcpkg install ffmpeg[avcodec,avformat,swresample] --triplet=$VCPKG_TRIPLET --overlay-triplets=./vcpkg-triplets --allow-unsupported || \
-        echo "WARNING: ffmpeg failed on ARM64 (expected, skipping)"
-    else
-        CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc \
-        CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ \
-        VCPKG_BUILD_TYPE=release \
-        /tmp/vcpkg/vcpkg install --triplet=$VCPKG_TRIPLET --overlay-triplets=./vcpkg-triplets
-    fi && \
+        /tmp/vcpkg/vcpkg install $pkg --triplet=$VCPKG_TRIPLET --overlay-triplets=./vcpkg-triplets --allow-unsupported || \
+        { echo "ERROR: Failed to install $pkg"; exit 1; }
+    done && \
     echo "=== Vcpkg installation complete ===" && \
     echo "Installed packages in vcpkg_installed/$VCPKG_TRIPLET/:" && \
     ls -la {project}/vcpkg_installed/$VCPKG_TRIPLET/lib/pkgconfig/ 2>/dev/null || echo "No pkgconfig directory found" && \
