@@ -90,8 +90,8 @@ before-all = """
     echo "=== Installing vcpkg dependencies for $AUDITWHEEL_ARCH (triplet: $VCPKG_TRIPLET) ===" && \
     cd {project} && \
     mv vcpkg.json vcpkg.json.bak && \
-    echo "Installing core audio dependencies (libsndfile without MP3/Opus, fftw3, libsamplerate)..." && \
-    for pkg in pkgconf "libsndfile[core]" fftw3 libsamplerate; do
+    echo "Installing audio dependencies with full libsndfile support (MP3, Opus, FLAC, OGG/Vorbis)..." && \
+    for pkg in pkgconf libsndfile mpg123 mp3lame opus libogg libvorbis libFLAC fftw3 libsamplerate; do
         echo "Installing $pkg..." && \
         CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc \
         CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ \
