@@ -370,6 +370,36 @@ single_feature_specs = [
   },
 ]
 
+# On Linux, when building shared library with static dependencies,
+# we must explicitly link transitive dependencies of libsndfile
+# (see https://stackoverflow.com/questions/8140494)
+if host_system == 'linux'
+  linux_transitive_specs = [
+    {'pkg': 'opus', 'fallback_libs': ['opus']},
+    {'pkg': 'mp3lame', 'fallback_libs': ['mp3lame']},
+    {'pkg': 'mpg123', 'fallback_libs': ['mpg123']},
+    {'pkg': 'vorbis', 'fallback_libs': ['vorbis']},
+    {'pkg': 'vorbisenc', 'fallback_libs': ['vorbisenc']},
+    {'pkg': 'ogg', 'fallback_libs': ['ogg']},
+  ]
+  
+  foreach spec : linux_transitive_specs
+    dep = dependency(spec['pkg'], required: false, disabler: true)
+    if not dep.found() and vcpkg_found and spec.has_key('fallback_libs')
+      foreach lib_name : spec['fallback_libs']
+        dep = cc.find_library(lib_name, dirs: vcpkg_library_dirs, required: false)
+        if dep.found()
+          break
+        endif
+      endforeach
+    endif
+    if dep.found()
+      dependencies += dep
+      message('Found transitive dependency: @0@'.format(spec['pkg']))
+    endif
+  endforeach
+endif
+
 foreach spec : single_feature_specs
   opt = get_option(spec['option'])
   if opt.disabled()
