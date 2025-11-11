@@ -3,8 +3,8 @@ requires = ["meson-python", "numpy"]
 build-backend = "mesonpy"
 
 [project]
-name = "aubio"
-version = "0.5.0a1"
+name = "aubio-ledfx"
+version = "0.4.10a1"
 description = "A collection of tools for music analysis"
 readme = "python/README.md"
 license = {text = "GNU/GPL version 3"}
@@ -12,7 +12,7 @@ authors = [
     {name = "Paul Brossier", email = "piem@aubio.org"},
 ]
 maintainers = [
-    {name = "Paul Brossier", email = "piem@aubio.org"},
+    {name = "LedFx Team", email = "hello@ledfx.app"},
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -30,8 +30,8 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "numpy==1.26.4; platform_system != 'Darwin' and platform_machine != 'aarch64'",
-    "numpy==2.0.0; platform_system == 'Darwin' and platform_machine == 'aarch64'",
+    "numpy>=1.26.4; platform_system != 'Darwin' and platform_machine != 'aarch64'",
+    "numpy>=2.0.0; platform_system == 'Darwin' and platform_machine == 'aarch64'",
 ]
 
 [project.urls]
@@ -51,7 +51,7 @@ before-build = "pip install \"meson>=1.9.0\" meson-python ninja \"numpy>=1.26.4\
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux*"]
 
 # Test the wheels - ensure they're portable by verifying imports work
-test-requires = ["pytest", "numpy==1.26.4"]
+test-requires = ["pytest", "numpy>=1.26.4"]
 # First test: Verify aubio can be imported (ensures DLLs are bundled on Windows)
 # Second test: Run pytest suite
 test-command = "python -c \"import aubio; print('aubio version:', aubio.version); print('Portable wheel test: PASS')\" && pytest {project}/python/tests || true"
