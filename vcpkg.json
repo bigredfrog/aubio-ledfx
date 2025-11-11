@@ -33,7 +33,7 @@
       "platform": "linux"
     },
     {
-      "name": "libFLAC",
+      "name": "libflac",
       "platform": "linux"
     },
     {
