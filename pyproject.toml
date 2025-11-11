@@ -67,10 +67,9 @@ before-all = [
     "git clone https://github.com/microsoft/vcpkg.git /tmp/vcpkg",
     "cd /tmp/vcpkg && ./bootstrap-vcpkg.sh -disableMetrics",
     # Install dependencies with CC/CXX environment variables set to point vcpkg to gcc-toolset-14
-    # vcpkg will use these for compiler detection
     # BOTH x64 and ARM64: Use custom triplets with -fPIC for FFmpeg compatibility
-    "cd {project} && ARCH=$(uname -m) && if [ \"$ARCH\" = \"x86_64\" ]; then CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=x64-linux-pic --overlay-triplets={project}/vcpkg-triplets; fi",
-    "cd {project} && ARCH=$(uname -m) && if [ \"$ARCH\" = \"aarch64\" ]; then CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=arm64-linux-pic --overlay-triplets={project}/vcpkg-triplets; fi",
+    "cd {project} && CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=x64-linux-pic --overlay-triplets=./vcpkg-triplets",
+    "cd {project} && CC=/opt/rh/gcc-toolset-14/root/usr/bin/gcc CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ VCPKG_BUILD_TYPE=release /tmp/vcpkg/vcpkg install --triplet=arm64-linux-pic --overlay-triplets=./vcpkg-triplets",
     # Debug: show what packages were installed
     "ls -la {project}/vcpkg_installed/*/lib/pkgconfig/ || true",
 ]
