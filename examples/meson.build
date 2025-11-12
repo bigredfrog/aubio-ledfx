@@ -6,17 +6,25 @@ utils_sources = files(
   'jackio.c',
 )
 
+# Declare jack dependency
+jack = dependency('jack', required: false)
+if jack.found()
+  jack_dep = declare_dependency(link_args: jack.get_variable('link_args', default_value: []))
+else
+  jack_dep = declare_dependency()
+endif
+
 # Build utility objects library
 utils_inc = include_directories('.')
 src_inc = include_directories('../src')
 
 # On Windows, link against static library; on other platforms use aubio_dep
 if host_system == 'windows'
-  utilsio_link_with = libaubio_static
+  utilsio_link_with = [libaubio_static]
   utilsio_deps = [jack_dep] + dependencies
 else
   utilsio_link_with = []
-  utilsio_deps = [aubio_dep, jack_dep]
+  utilsio_deps = [aubio_dep] + (jack.found() ? [jack] : [])
 endif
 
 utilsio = static_library('utilsio',

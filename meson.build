@@ -617,3 +617,4 @@ summary({
   'Vorbis': conf_data.has('HAVE_VORBISENC'),
   'FLAC': conf_data.has('HAVE_FLAC'),
 }, section: 'Optional dependencies')
+

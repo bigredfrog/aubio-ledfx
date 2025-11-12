@@ -269,3 +269,4 @@ aubio_dep = declare_dependency(
   include_directories: aubio_inc,
   dependencies: dependencies,
 )
+
