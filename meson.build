@@ -76,6 +76,7 @@ vcpkg_install_root = meson.project_source_root() / 'vcpkg_installed'
 
 # Determine vcpkg triplet based on host system and architecture
 # Must match the triplet used in CI/CD (see pyproject.toml [tool.cibuildwheel] sections)
+vcpkg_triplet = 'unknown'
 if host_system == 'windows'
   # Windows: Use x64-windows-release triplet (release-only, dynamic linking)
   # This matches pyproject.toml [tool.cibuildwheel.windows] before-all step
