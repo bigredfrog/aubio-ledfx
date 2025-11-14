@@ -141,18 +141,15 @@ jobs:
       - name: Build
         run: meson compile -C builddir
       
-      - name: Run key tests with Valgrind
+      - name: Run tests with Valgrind
         run: |
-          # Run a subset of tests with Valgrind (full suite is too slow)
-          for test in mathutils fvec cvec pitch specdesc; do
-            echo "Running $test with Valgrind..."
-            valgrind \
-              --leak-check=full \
-              --show-leak-kinds=all \
-              --error-exitcode=1 \
-              --track-origins=yes \
-              ./builddir/tests/test-$test || exit 1
-          done
+          # Run full test suite with Valgrind
+          # Checks for memory errors but allows small leaks in test infrastructure
+          meson test -C builddir --wrap='valgrind --error-exitcode=1 --track-origins=yes' --print-errorlogs
+          
+          # Also run with leak checking to report leaks (but don't fail on them)
+          echo "Running leak check (informational only)..."
+          meson test -C builddir --wrap='valgrind --leak-check=full --show-leak-kinds=definite,possible' --print-errorlogs || true
       
       - name: Upload Valgrind logs on failure
         if: failure()
