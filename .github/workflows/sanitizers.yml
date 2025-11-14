@@ -25,13 +25,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.14'
+          python-version: '3.11'
       
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y meson ninja-build
-          pip install numpy
+          pip install meson ninja numpy
       
       - name: Setup build with sanitizers
         run: |
@@ -82,13 +80,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.14'
+          python-version: '3.11'
       
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y meson ninja-build
-          pip install numpy
+          pip install meson ninja numpy
       
       - name: Setup build with UBSAN
         run: |
@@ -127,13 +123,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.14'
+          python-version: '3.11'
       
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y meson ninja-build valgrind
-          pip install numpy
+          sudo apt-get install -y valgrind
+          pip install meson ninja numpy
       
       - name: Setup build
         run: |
