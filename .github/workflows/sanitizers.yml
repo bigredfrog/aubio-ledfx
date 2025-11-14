@@ -25,7 +25,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.14'
       
       - name: Install dependencies
         run: |
@@ -52,7 +52,7 @@ jobs:
       
       - name: Upload test logs on failure
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: asan-ubsan-test-logs
           path: builddir/meson-logs/
@@ -82,7 +82,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.14'
       
       - name: Install dependencies
         run: |
@@ -108,7 +108,7 @@ jobs:
       
       - name: Upload test logs on failure
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ubsan-test-logs
           path: builddir/meson-logs/
@@ -127,7 +127,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.14'
       
       - name: Install dependencies
         run: |
@@ -160,7 +160,7 @@ jobs:
       
       - name: Upload Valgrind logs on failure
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: valgrind-logs
           path: |
