@@ -136,8 +136,6 @@ jobs:
         env:
           # Build only for the native architecture (no cross-compilation)
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
-          # Enable vcpkg binary caching in cibuildwheel for Linux
-          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
           
           # All other configuration is in pyproject.toml
 
