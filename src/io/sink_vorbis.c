@@ -69,6 +69,10 @@ aubio_sink_vorbis_t * new_aubio_sink_vorbis (const char_t *uri,
     uint_t samplerate)
 {
   aubio_sink_vorbis_t * s = AUBIO_NEW(aubio_sink_vorbis_t);
+  
+  if (!s) {
+    return NULL;
+  }
 
   if (!uri) {
     AUBIO_ERROR("sink_vorbis: Aborted opening null path\n");

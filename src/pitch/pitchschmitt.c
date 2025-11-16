@@ -39,6 +39,10 @@ aubio_pitchschmitt_t *
 new_aubio_pitchschmitt (uint_t size)
 {
   aubio_pitchschmitt_t *p = AUBIO_NEW (aubio_pitchschmitt_t);
+  
+  if (!p) {
+    return NULL;
+  }
   p->blockSize = size;
   p->schmittBuffer = AUBIO_ARRAY (signed short int, p->blockSize);
   p->buf = AUBIO_ARRAY (signed short int, p->blockSize);

@@ -51,6 +51,10 @@ aubio_pitchfcomb_t *
 new_aubio_pitchfcomb (uint_t bufsize, uint_t hopsize)
 {
   aubio_pitchfcomb_t *p = AUBIO_NEW (aubio_pitchfcomb_t);
+  
+  if (!p) {
+    return NULL;
+  }
   p->fftSize = bufsize;
   p->stepSize = hopsize;
   p->fft = new_aubio_fft (bufsize);

@@ -40,6 +40,10 @@ struct _aubio_hist_t {
  */
 aubio_hist_t * new_aubio_hist (smpl_t flow, smpl_t fhig, uint_t nelems){
   aubio_hist_t * s = AUBIO_NEW(aubio_hist_t);
+  
+  if (!s) {
+    return NULL;
+  }
   smpl_t step = (fhig-flow)/(smpl_t)(nelems);
   smpl_t accum = step;
   uint_t i;

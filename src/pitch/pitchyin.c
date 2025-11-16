@@ -67,6 +67,10 @@ aubio_pitchyin_t *
 new_aubio_pitchyin (uint_t bufsize)
 {
   aubio_pitchyin_t *o = AUBIO_NEW (aubio_pitchyin_t);
+  
+  if (!o) {
+    return NULL;
+  }
   o->yin = new_fvec (bufsize / 2);
   o->tol = 0.15;
   o->peak_pos = 0;

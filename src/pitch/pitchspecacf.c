@@ -42,6 +42,10 @@ aubio_pitchspecacf_t *
 new_aubio_pitchspecacf (uint_t bufsize)
 {
   aubio_pitchspecacf_t *p = AUBIO_NEW (aubio_pitchspecacf_t);
+  
+  if (!p) {
+    return NULL;
+  }
   p->fft = new_aubio_fft (bufsize);
   if (!p->fft) goto beach;
   p->win = new_aubio_window ("hanningz", bufsize);

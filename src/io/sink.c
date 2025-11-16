@@ -96,6 +96,10 @@ extern void aubio_sink_flac_do_multi(aubio_sink_flac_t *s, fmat_t*
 
 aubio_sink_t * new_aubio_sink(const char_t * uri, uint_t samplerate) {
   aubio_sink_t * s = AUBIO_NEW(aubio_sink_t);
+  
+  if (!s) {
+    return NULL;
+  }
 
 #ifdef HAVE_VORBISENC
   // check if this uri could be for us

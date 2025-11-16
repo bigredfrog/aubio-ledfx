@@ -54,6 +54,10 @@ new_aubio_mfcc (uint_t win_s, uint_t n_filters, uint_t n_coefs,
 
   /* allocate space for mfcc object */
   aubio_mfcc_t *mfcc = AUBIO_NEW (aubio_mfcc_t);
+  
+  if (!mfcc) {
+    goto failure;
+  }
 
   if ((sint_t)n_coefs <= 0) {
     AUBIO_ERR("mfcc: n_coefs should be > 0, got %d\n", n_coefs);

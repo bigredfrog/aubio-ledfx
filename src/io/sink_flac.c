@@ -87,6 +87,10 @@ aubio_sink_flac_t * new_aubio_sink_flac (const char_t *uri,
     uint_t samplerate)
 {
   aubio_sink_flac_t * s = AUBIO_NEW(aubio_sink_flac_t);
+  
+  if (!s) {
+    return NULL;
+  }
 
   if (!uri) {
     AUBIO_ERROR("sink_flac: Aborted opening null path\n");

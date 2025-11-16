@@ -51,6 +51,10 @@ aubio_pitchyinfast_t *
 new_aubio_pitchyinfast (uint_t bufsize)
 {
   aubio_pitchyinfast_t *o = AUBIO_NEW (aubio_pitchyinfast_t);
+  
+  if (!o) {
+    return NULL;
+  }
   o->yin = new_fvec (bufsize / 2);
   o->tmpdata = new_fvec (bufsize);
   o->sqdiff = new_fvec (bufsize / 2);
