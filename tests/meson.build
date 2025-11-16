@@ -30,6 +30,7 @@ test_sources = files(
   'src/test-mathutils.c',
   'src/test-mathutils-window.c',
   'src/test-vecutils.c',
+  'src/test-null-alloc.c',
   # Effects tests
   'src/effects/test-pitchshift.c',
   'src/effects/test-timestretch.c',
