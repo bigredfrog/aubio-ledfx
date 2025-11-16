@@ -80,6 +80,10 @@ static unsigned char *write_little_endian (unsigned int s, unsigned char *str,
 
 aubio_sink_wavwrite_t * new_aubio_sink_wavwrite(const char_t * path, uint_t samplerate) {
   aubio_sink_wavwrite_t * s = AUBIO_NEW(aubio_sink_wavwrite_t);
+  
+  if (!s) {
+    return NULL;
+  }
 
   if (path == NULL) {
     AUBIO_ERR("sink_wavwrite: Aborted opening null path\n");

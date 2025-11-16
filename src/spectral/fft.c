@@ -177,6 +177,10 @@ struct _aubio_fft_t {
 
 aubio_fft_t * new_aubio_fft (uint_t winsize) {
   aubio_fft_t * s = AUBIO_NEW(aubio_fft_t);
+  
+  if (!s) {
+    return NULL;
+  }
   if ((sint_t)winsize < 2) {
     AUBIO_ERR("fft: got winsize %d, but can not be < 2\n", winsize);
     goto beach;

@@ -57,6 +57,10 @@ uint_t aubio_source_apple_audio_open (aubio_source_apple_audio_t *s, const char_
 aubio_source_apple_audio_t * new_aubio_source_apple_audio(const char_t * path, uint_t samplerate, uint_t block_size)
 {
   aubio_source_apple_audio_t * s = AUBIO_NEW(aubio_source_apple_audio_t);
+  
+  if (!s) {
+    return NULL;
+  }
 
   if (path == NULL || strnlen(path, PATH_MAX) < 1) {
     AUBIO_ERROR("source_apple_audio: Aborted opening null path\n");

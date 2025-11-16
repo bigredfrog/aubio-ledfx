@@ -80,6 +80,10 @@ aubio_audio_unit_t * new_aubio_audio_unit(uint_t samplerate,
     uint_t blocksize)
 {
   aubio_audio_unit_t * o = AUBIO_NEW(aubio_audio_unit_t);
+  
+  if (!o) {
+    return NULL;
+  }
   o->hw_output_channels = 2;
   o->hw_input_channels = 2;
   o->sw_output_channels = sw_output_channels;

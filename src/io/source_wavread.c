@@ -73,6 +73,10 @@ static unsigned int read_little_endian (unsigned char *buf,
 
 aubio_source_wavread_t * new_aubio_source_wavread(const char_t * path, uint_t samplerate, uint_t hop_size) {
   aubio_source_wavread_t * s = AUBIO_NEW(aubio_source_wavread_t);
+  
+  if (!s) {
+    return NULL;
+  }
   size_t bytes_read = 0, bytes_junk = 0, bytes_expected = 44;
   unsigned char buf[5] = "\0";
   unsigned int format, channels, sr, byterate, blockalign, duration, bitspersample;//, data_size;

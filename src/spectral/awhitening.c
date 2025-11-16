@@ -55,6 +55,10 @@ aubio_spectral_whitening_t *
 new_aubio_spectral_whitening (uint_t buf_size, uint_t hop_size, uint_t samplerate)
 {
   aubio_spectral_whitening_t *o = AUBIO_NEW (aubio_spectral_whitening_t);
+  
+  if (!o) {
+    return NULL;
+  }
   if ((sint_t)buf_size < 1) {
     AUBIO_ERR("spectral_whitening: got buffer_size %d, but can not be < 1\n", buf_size);
     goto beach;

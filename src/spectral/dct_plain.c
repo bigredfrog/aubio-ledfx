@@ -35,6 +35,10 @@ void del_aubio_dct_plain (aubio_dct_plain_t *s);
 
 aubio_dct_plain_t * new_aubio_dct_plain (uint_t size) {
   aubio_dct_plain_t * s = AUBIO_NEW(aubio_dct_plain_t);
+  
+  if (!s) {
+    return NULL;
+  }
   uint_t i, j;
   smpl_t scaling;
   if (aubio_is_power_of_two (size) == 1 && size > 16) {

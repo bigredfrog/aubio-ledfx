@@ -129,6 +129,10 @@ uint_t aubio_source_avcodec_has_network_url(aubio_source_avcodec_t *s) {
 aubio_source_avcodec_t * new_aubio_source_avcodec(const char_t * path,
     uint_t samplerate, uint_t hop_size) {
   aubio_source_avcodec_t * s = AUBIO_NEW(aubio_source_avcodec_t);
+  
+  if (!s) {
+    return NULL;
+  }
   AVFormatContext *avFormatCtx = NULL;
   AVCodecContext *avCodecCtx = NULL;
   AVFrame *avFrame = NULL;

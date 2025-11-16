@@ -162,6 +162,11 @@ aubio_peakpicker_t *
 new_aubio_peakpicker (void)
 {
   aubio_peakpicker_t *t = AUBIO_NEW (aubio_peakpicker_t);
+  
+  if (!t) {
+    return NULL;
+  }
+
   t->threshold = 0.1;           /* 0.0668; 0.33; 0.082; 0.033; */
   t->win_post = 5;
   t->win_pre = 1;

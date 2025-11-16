@@ -65,6 +65,11 @@ struct _aubio_notes_t {
 aubio_notes_t * new_aubio_notes (const char_t * method,
     uint_t buf_size, uint_t hop_size, uint_t samplerate) {
   aubio_notes_t *o = AUBIO_NEW(aubio_notes_t);
+  
+  if (!o) {
+    return NULL;
+  }
+
 
   const char_t * onset_method = "default";
   const char_t * pitch_method = "default";

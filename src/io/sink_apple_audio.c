@@ -61,6 +61,10 @@ struct _aubio_sink_apple_audio_t {
 
 aubio_sink_apple_audio_t * new_aubio_sink_apple_audio(const char_t * uri, uint_t samplerate) {
   aubio_sink_apple_audio_t * s = AUBIO_NEW(aubio_sink_apple_audio_t);
+  
+  if (!s) {
+    return NULL;
+  }
   s->max_frames = MAX_SIZE;
   s->async = false;
 
