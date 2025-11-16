@@ -257,6 +257,11 @@ new_aubio_specdesc (const char_t * onset_mode, uint_t size){
   aubio_specdesc_t * o = AUBIO_NEW(aubio_specdesc_t);
   uint_t rsize = size/2+1;
   aubio_specdesc_type onset_type;
+  
+  if (!o) {
+    return NULL;
+  }
+  
   if (strcmp (onset_mode, "energy") == 0)
       onset_type = aubio_onset_energy;
   else if (strcmp (onset_mode, "specdiff") == 0)
@@ -301,6 +306,14 @@ new_aubio_specdesc (const char_t * onset_mode, uint_t size){
       AUBIO_FREE(o);
       return NULL;
   }
+  
+  /* initialize pointers to NULL for proper cleanup */
+  o->oldmag = NULL;
+  o->dev1 = NULL;
+  o->theta1 = NULL;
+  o->theta2 = NULL;
+  o->histog = NULL;
+  
   switch(onset_type) {
     /* for both energy and hfc, only fftgrain->norm is required */
     case aubio_onset_energy:
@@ -310,28 +323,40 @@ new_aubio_specdesc (const char_t * onset_mode, uint_t size){
       /* the other approaches will need some more memory spaces */
     case aubio_onset_complex:
       o->oldmag = new_fvec(rsize);
+      if (!o->oldmag) goto beach;
       o->dev1   = new_fvec(rsize);
+      if (!o->dev1) goto beach;
       o->theta1 = new_fvec(rsize);
+      if (!o->theta1) goto beach;
       o->theta2 = new_fvec(rsize);
+      if (!o->theta2) goto beach;
       break;
     case aubio_onset_phase:
     case aubio_onset_wphase:
       o->dev1   = new_fvec(rsize);
+      if (!o->dev1) goto beach;
       o->theta1 = new_fvec(rsize);
+      if (!o->theta1) goto beach;
       o->theta2 = new_fvec(rsize);
+      if (!o->theta2) goto beach;
       o->histog = new_aubio_hist(0.0, PI, 10);
+      if (!o->histog) goto beach;
       o->threshold = 0.1;
       break;
     case aubio_onset_specdiff:
       o->oldmag = new_fvec(rsize);
+      if (!o->oldmag) goto beach;
       o->dev1   = new_fvec(rsize);
+      if (!o->dev1) goto beach;
       o->histog = new_aubio_hist(0.0, PI, 10);
+      if (!o->histog) goto beach;
       o->threshold = 0.1;
       break;
     case aubio_onset_kl:
     case aubio_onset_mkl:
     case aubio_onset_specflux:
       o->oldmag = new_fvec(rsize);
+      if (!o->oldmag) goto beach;
       break;
     default:
       break;
@@ -391,6 +416,16 @@ new_aubio_specdesc (const char_t * onset_mode, uint_t size){
   }
   o->onset_type = onset_type;
   return o;
+  
+beach:
+  /* cleanup on allocation failure */
+  if (o->oldmag) del_fvec(o->oldmag);
+  if (o->dev1) del_fvec(o->dev1);
+  if (o->theta1) del_fvec(o->theta1);
+  if (o->theta2) del_fvec(o->theta2);
+  if (o->histog) del_aubio_hist(o->histog);
+  AUBIO_FREE(o);
+  return NULL;
 }
 
 void del_aubio_specdesc (aubio_specdesc_t *o){

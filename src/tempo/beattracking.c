@@ -60,6 +60,11 @@ new_aubio_beattracking (uint_t winlen, uint_t hop_size, uint_t samplerate)
 {
 
   aubio_beattracking_t *p = AUBIO_NEW (aubio_beattracking_t);
+  
+  if (!p) {
+    return NULL;
+  }
+
   uint_t i = 0;
   /* default value for rayleigh weighting - sets preferred tempo to 120bpm */
   smpl_t rayparam = 60. * samplerate / 120. / hop_size;

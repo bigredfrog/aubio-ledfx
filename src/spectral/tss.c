@@ -98,6 +98,11 @@ uint_t aubio_tss_set_threshold(aubio_tss_t *o, smpl_t threshold){
 aubio_tss_t * new_aubio_tss(uint_t buf_size, uint_t hop_size)
 {
   aubio_tss_t * o = AUBIO_NEW(aubio_tss_t);
+  
+  if (!o) {
+    return NULL;
+  }
+
   uint_t rsize = buf_size/2+1;
   o->threshold = 0.25;
   o->thrsfact = TWO_PI*hop_size/rsize;
