@@ -61,10 +61,12 @@ jobs:
           - os: ubuntu-latest
             arch: x86_64
             cibw_archs: "x86_64"
+            triplet: "x64-linux-pic"
           # Linux ARM64 (native, no QEMU)
           - os: ubuntu-24.04-arm
             arch: aarch64
             cibw_archs: "aarch64"
+            triplet: "arm64-linux-pic"
           # Windows AMD64
           - os: windows-latest
             arch: AMD64
@@ -143,6 +145,13 @@ jobs:
           echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
           echo "CMAKE_PREFIX_PATH=${{ github.workspace }}/vcpkg_installed/arm64-osx" >> $GITHUB_ENV
           echo "PKG_CONFIG_PATH=${{ github.workspace }}/vcpkg_installed/arm64-osx/lib/pkgconfig:${{ github.workspace }}/vcpkg_installed/arm64-osx/share/pkgconfig" >> $GITHUB_ENV
+
+      - name: Install vcpkg dependencies Linux
+        if: runner.os == 'Linux'
+        run: |
+          echo "Building vcpkg dependencies for${{ matrix.os }}-${{ matrix.arch }}"
+          $VCPKG_INSTALLATION_ROOT/vcpkg install --triplet=${{ matrix.triplet }} --overlay-triplets=./vcpkg-triplets --allow-unsupported
+
 
         
 
